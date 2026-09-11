@@ -1434,6 +1434,23 @@ uint32_t br_rsa_i31_keygen(
 	unsigned size, uint32_t pubexp);
 
 /**
+ * \brief RSA key pair generation with a bounded number of prime candidates.
+ *
+ * This is the i31 key generator with the same key and buffer contract as
+ * \ref br_rsa_i31_keygen.  At most \p max_candidates random candidates are
+ * considered for each prime factor.  A zero limit, an invalid parameter, or
+ * exhaustion returns 0 and the caller must discard every output buffer.
+ *
+ * This extension is intended for an embedding that cannot permit an
+ * unbounded computation in an untrusted-content process.
+ */
+uint32_t br_rsa_i31_keygen_bounded(
+	const br_prng_class **rng_ctx,
+	br_rsa_private_key *sk, void *kbuf_priv,
+	br_rsa_public_key *pk, void *kbuf_pub,
+	unsigned size, uint32_t pubexp, uint32_t max_candidates);
+
+/**
  * \brief RSA key pair generation with the "i62" engine.
  *
  * This function is defined only on architecture that offer a 64x64->128

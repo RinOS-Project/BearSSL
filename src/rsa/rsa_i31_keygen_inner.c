@@ -231,9 +231,10 @@ miller_rabin(const br_prng_class **rng, const uint32_t *x, int n,
  * Create a random prime of the provided size. 'size' is the _encoded_
  * bit length. The two top bits and the two bottom bits are set to 1.
  */
-static void
+static uint32_t
 mkprime(const br_prng_class **rng, uint32_t *x, uint32_t esize,
-	uint32_t pubexp, uint32_t *t, size_t tlen, br_i31_modpow_opt_type mp31)
+	uint32_t pubexp, uint32_t *t, size_t tlen, br_i31_modpow_opt_type mp31,
+	uint32_t *remaining_candidates)
 {
 	size_t len;
 
@@ -243,6 +244,11 @@ mkprime(const br_prng_class **rng, uint32_t *x, uint32_t esize,
 		size_t u;
 		uint32_t m3, m5, m7, m11;
 		int rounds, s7, s11;
+
+		if (*remaining_candidates == 0) {
+			return 0;
+		}
+		-- *remaining_candidates;
 
 		/*
 		 * Generate random bits. We force the two top bits and the
@@ -383,7 +389,7 @@ mkprime(const br_prng_class **rng, uint32_t *x, uint32_t esize,
 		}
 
 		if (miller_rabin(rng, x, rounds, t, tlen, mp31)) {
-			return;
+			return 1;
 		}
 	}
 }
@@ -460,7 +466,20 @@ br_rsa_i31_keygen_inner(const br_prng_class **rng,
 	br_rsa_public_key *pk, void *kbuf_pub,
 	unsigned size, uint32_t pubexp, br_i31_modpow_opt_type mp31)
 {
+	return br_rsa_i31_keygen_inner_bounded(rng, sk, kbuf_priv, pk, kbuf_pub,
+		size, pubexp, mp31, UINT32_MAX);
+}
+
+/* see inner.h */
+uint32_t
+br_rsa_i31_keygen_inner_bounded(const br_prng_class **rng,
+	br_rsa_private_key *sk, void *kbuf_priv,
+	br_rsa_public_key *pk, void *kbuf_pub,
+	unsigned size, uint32_t pubexp, br_i31_modpow_opt_type mp31,
+	uint32_t max_candidates)
+{
 	uint32_t esize_p, esize_q;
+	uint32_t p_candidates, q_candidates;
 	size_t plen, qlen, tlen;
 	uint32_t *p, *q, *t;
 	union {
@@ -469,7 +488,8 @@ br_rsa_i31_keygen_inner(const br_prng_class **rng,
 	} tmp;
 	uint32_t r;
 
-	if (size < BR_MIN_RSA_SIZE || size > BR_MAX_RSA_SIZE) {
+	if (size < BR_MIN_RSA_SIZE || size > BR_MAX_RSA_SIZE ||
+		max_candidates == 0) {
 		return 0;
 	}
 	if (pubexp == 0) {
@@ -526,8 +546,12 @@ br_rsa_i31_keygen_inner(const br_prng_class **rng,
 	 * public exponent.
 	 */
 
+	p_candidates = max_candidates;
 	for (;;) {
-		mkprime(rng, p, esize_p, pubexp, t, tlen, mp31);
+		if (!mkprime(rng, p, esize_p, pubexp, t, tlen, mp31,
+			&p_candidates)) {
+			return 0;
+		}
 		br_i31_rshift(p, 1);
 		if (invert_pubexp(t, p, pubexp, t + 1 + plen)) {
 			br_i31_add(p, p, 1);
@@ -538,8 +562,12 @@ br_rsa_i31_keygen_inner(const br_prng_class **rng,
 		}
 	}
 
+	q_candidates = max_candidates;
 	for (;;) {
-		mkprime(rng, q, esize_q, pubexp, t, tlen, mp31);
+		if (!mkprime(rng, q, esize_q, pubexp, t, tlen, mp31,
+			&q_candidates)) {
+			return 0;
+		}
 		br_i31_rshift(q, 1);
 		if (invert_pubexp(t, q, pubexp, t + 1 + qlen)) {
 			br_i31_add(q, q, 1);

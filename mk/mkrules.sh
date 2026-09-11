@@ -209,6 +209,7 @@ coresrc=" \
 	src/rsa/rsa_i15_pub.c \
 	src/rsa/rsa_i15_pubexp.c \
 	src/rsa/rsa_i31_keygen.c \
+	src/rsa/rsa_i31_keygen_bounded.c \
 	src/rsa/rsa_i31_keygen_inner.c \
 	src/rsa/rsa_i31_modulus.c \
 	src/rsa/rsa_i31_oaep_decrypt.c \

@@ -160,6 +160,7 @@ OBJ = $(OBJSETTINGS) \
  $(OBJDIR)$Prsa_i15_pub$O \
  $(OBJDIR)$Prsa_i15_pubexp$O \
  $(OBJDIR)$Prsa_i31_keygen$O \
+ $(OBJDIR)$Prsa_i31_keygen_bounded$O \
  $(OBJDIR)$Prsa_i31_keygen_inner$O \
  $(OBJDIR)$Prsa_i31_modulus$O \
  $(OBJDIR)$Prsa_i31_oaep_decrypt$O \
@@ -848,7 +849,10 @@ $(OBJDIR)$Prsa_i15_pubexp$O: src$Prsa$Prsa_i15_pubexp.c $(HEADERSPRIV) $(OBJSETT
 $(OBJDIR)$Prsa_i31_keygen$O: src$Prsa$Prsa_i31_keygen.c $(HEADERSPRIV) $(OBJSETTINGS)
 	$(CC) $(CFLAGS) $(INCFLAGS) $(CCOUT)$(OBJDIR)$Prsa_i31_keygen$O src$Prsa$Prsa_i31_keygen.c
 
-$(OBJDIR)$Prsa_i31_keygen_inner$O: src$Prsa$Prsa_i31_keygen_inner.c $(HEADERSPRIV) $(OBJSETTINGS)
+$(OBJDIR)$Prsa_i31_keygen_bounded$O: src$Prsa$Prsa_i31_keygen_bounded.c $(HEADERSPRIV)
+	$(CC) $(CFLAGS) $(INCFLAGS) $(CCOUT)$(OBJDIR)$Prsa_i31_keygen_bounded$O src$Prsa$Prsa_i31_keygen_bounded.c
+
+$(OBJDIR)$Prsa_i31_keygen_inner$O: src$Prsa$Prsa_i31_keygen_inner.c $(HEADERSPRIV)
 	$(CC) $(CFLAGS) $(INCFLAGS) $(CCOUT)$(OBJDIR)$Prsa_i31_keygen_inner$O src$Prsa$Prsa_i31_keygen_inner.c
 
 $(OBJDIR)$Prsa_i31_modulus$O: src$Prsa$Prsa_i31_modulus.c $(HEADERSPRIV) $(OBJSETTINGS)
